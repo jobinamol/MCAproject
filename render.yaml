@@ -4,9 +4,11 @@ services:
     env: python
     plan: free
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn MCAProject.wsgi:application
+    startCommand: gunicorn==20.0.4 MCAProject.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
       - key: DEBUG
-        value: "False" 
+        value: "False"
+      - key: PIP_VERSION
+        value: "23.0.1"
