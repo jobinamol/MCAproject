@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Resort Recommendations</title>
+
+    {% load static %}
+
+    <!-- External Styles & Fonts -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: "Playfair Display", serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">LuxuryResort</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#visuals">Visuals</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Recommendation Section -->
+<div class="container">
+    <h2 class="text-center">Top Resorts Recommended by AI</h2>
+    <p class="text-center">Based on your preferences, here are the best resorts.</p>
+
+    <div class="row">
+        <!-- Resort 1 -->
+        <div class="col-md-4">
+            <div class="card p-3 mb-4" data-aos="fade-up">
+                <h5 class="card-title">Crowne Plaza Kochi</h5>
+                <p class="card-text"><strong>Location:</strong> Kochi</p>
+                <p class="card-text"><strong>Rating:</strong> ⭐4.6</p>
+                <p class="card-text"><strong>Price:</strong> $8854</p>
+            </div>
+        </div>
+
+        <!-- Resort 2 -->
+        <div class="col-md-4">
+            <div class="card p-3 mb-4" data-aos="fade-up">
+                <h5 class="card-title">Trident Hotel Cochin</h5>
+                <p class="card-text"><strong>Location:</strong> Kochi</p>
+                <p class="card-text"><strong>Rating:</strong> ⭐4.5</p>
+                <p class="card-text"><strong>Price:</strong> $6441</p>
+            </div>
+        </div>
+
+        <!-- Resort 3 -->
+        <div class="col-md-4">
+            <div class="card p-3 mb-4" data-aos="fade-up">
+                <h5 class="card-title">The Galaxy Suites</h5>
+                <p class="card-text"><strong>Location:</strong> Kochi</p>
+                <p class="card-text"><strong>Rating:</strong> ⭐3.8</p>
+                <p class="card-text"><strong>Price:</strong> $831</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Visualization Section -->
+<div class="container my-5" id="visuals">
+    <h2 class="text-center">Resort Insights & Visualization</h2>
+    <p class="text-center">See how different resorts compare in ratings, food preferences, and more!</p>
+
+    <div class="row">
+        <!-- Rating Distribution -->
+        <div class="col-md-6">
+            <div class="chart-container">
+                <canvas id="ratingChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Food Category Distribution -->
+        <div class="col-md-6">
+            <div class="chart-container">
+                <canvas id="foodChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="text-center bg-dark text-white py-3">
+    <p>&copy; 2025 Luxury Resort Booking | Follow us: 
+        <a href="#" class="text-warning"><i class="fab fa-facebook"></i></a> 
+        <a href="#" class="text-warning"><i class="fab fa-twitter"></i></a>
+    </p>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script>
+    AOS.init(); // Initialize animations
+
+    // Ratings Chart
+    var ctx1 = document.getElementById("ratingChart").getContext("2d");
+    var ratingChart = new Chart(ctx1, {
+        type: "bar",
+        data: {
+            labels: ["Crowne Plaza Kochi", "Trident Hotel Cochin", "The Galaxy Suites"],
+            datasets: [{
+                label: "Hotel Ratings",
+                backgroundColor: ["blue", "green", "orange"],
+                data: [4.6, 4.5, 3.8]
+            }]
+        }
+    });
+
+    // Food Preferences Chart
+    var ctx2 = document.getElementById("foodChart").getContext("2d");
+    var foodChart = new Chart(ctx2, {
+        type: "pie",
+        data: {
+            labels: ["Vegetarian", "Non-Vegetarian", "Vegan"],
+            datasets: [{
+                label: "Food Preferences",
+                backgroundColor: ["green", "red", "yellow"],
+                data: [40, 50, 10]
+            }]
+        }
+    });
+</script>
+
+</body>
+</html>
