@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: mcaproject
+    env: python
+    plan: free
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: gunicorn MCAProject.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: DEBUG
+        value: "False" 
