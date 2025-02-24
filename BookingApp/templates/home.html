@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
+    <!-- Additional Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <style>
         /* Background Video Styling */
         .video-container {
@@ -34,7 +37,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: linear-gradient(
+                rgba(0, 0, 0, 0.7),
+                rgba(0, 0, 0, 0.4)
+            );
             display: flex;
             align-items: center;
             justify-content: center;
@@ -44,9 +50,10 @@
             padding: 20px;
         }
         .hero-text {
-            font-size: 3.5rem;
+            font-size: clamp(2rem, 5vw, 3.5rem);
             font-family: "Playfair Display", serif;
-            font-weight: bold;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         .navbar {
             background: rgba(0, 0, 0, 0.8) !important;
@@ -65,7 +72,257 @@
         }
         /* Basic styles */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Additional Styles */
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #f7c02a;
+            margin-bottom: 15px;
+        }
+        
+        .package-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #f7c02a;
+            padding: 5px 10px;
+            border-radius: 15px;
+            color: black;
+            font-weight: bold;
+        }
+        
+        .feature-card {
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Enhanced Styles */
+        .search-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: clamp(15px, 3vw, 25px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            transform: translateY(-50%);
+        }
+
+        .search-input {
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(247, 192, 42, 0.3);
+            border-color: var(--primary);
+        }
+
+        .benefits-section {
+            background: linear-gradient(135deg, var(--dark) 0%, #363636 100%);
+            color: white;
+            padding: 80px 0;
+        }
+
+        .benefit-item {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .benefit-item:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .seasonal-badge {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #ff4757;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 1;
+        }
+
+        /* Enhanced Mobile-First Styles */
+        :root {
+            --primary: #f7c02a;
+            --secondary: #ff4757;
+            --dark: #1a1a1a;
+            --light: #ffffff;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .hero-text {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-family: "Playfair Display", serif;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .video-overlay {
+            background: linear-gradient(
+                rgba(0, 0, 0, 0.7),
+                rgba(0, 0, 0, 0.4)
+            );
+        }
+
+        /* Enhanced Search Container */
+        .search-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: clamp(15px, 3vw, 25px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            transform: translateY(-50%);
+        }
+
+        .search-input {
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(247, 192, 42, 0.3);
+            border-color: var(--primary);
+        }
+
+        /* Enhanced Benefits Section */
+        .benefits-section {
+            background: linear-gradient(135deg, var(--dark) 0%, #363636 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .benefits-section::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.1;
+            top: -100px;
+            right: -100px;
+        }
+
+        .benefit-item {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: clamp(20px, 4vw, 30px);
+            transition: all 0.4s ease;
+        }
+
+        .benefit-item:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        /* Enhanced Package Cards */
+        .package-card {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .package-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .package-image {
+            height: 250px;
+            object-fit: cover;
+            transition: all 0.4s ease;
+        }
+
+        .package-card:hover .package-image {
+            transform: scale(1.1);
+        }
+
+        .package-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: var(--dark);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 2;
+        }
+
+        .seasonal-badge {
+            left: 20px;
+            background: var(--secondary);
+            color: var(--light);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .search-container {
+                margin: 0 15px;
+                transform: translateY(-30%);
+            }
+
+            .search-row > div {
+                margin-bottom: 10px;
+            }
+
+            .benefit-item {
+                margin-bottom: 20px;
+            }
+
+            .navbar {
+                padding: 10px;
+            }
+
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .hero-buttons .btn {
+                width: 100%;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-up.active {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
@@ -77,9 +334,12 @@
         <source src="{% static 'videos/about.mp4' %}" type="video/mp4">
     </video>
     <div class="video-overlay">
-        <h1 class="hero-text" data-aos="fade-down">AI-Powered Resort Recommendations</h1>
-        <p class="lead" data-aos="fade-up">Explore luxury resorts curated just for you</p>
-        <a href="#recommendations" class="btn btn-warning btn-lg mt-3" data-aos="zoom-in">View Top Resorts</a>
+        <h1 class="hero-text" data-aos="fade-down">AI-Powered Resort Experiences</h1>
+        <p class="lead" data-aos="fade-up">Discover personalized daycation and staycation packages</p>
+        <div class="d-flex gap-3 mt-3">
+            <a href="#packages" class="btn btn-warning btn-lg" data-aos="zoom-in">View Packages</a>
+            <a href="{% url 'recommend_page' %}" class="btn btn-outline-light btn-lg" data-aos="zoom-in">Get Recommendations</a>
+        </div>
     </div>
 </div>
 
@@ -100,58 +360,115 @@
     </div>
 </nav>
 
-<section id="recommendations" class="container my-5">
-    <h2 class="text-center">Top Resorts Recommended by AI</h2>
-    <div class="row">
-        <!-- Resort 1 -->
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 mb-4 p-3" data-aos="fade-up">
-                <h5 class="card-title">Crowne Plaza Kochi</h5>
-                <p class="card-text"><strong>Location:</strong> Kochi</p>
-                <p class="card-text"><strong>Rating:</strong> ⭐4.6</p>
-                <p class="card-text"><strong>Price:</strong> $8854</p>
+<!-- Enhanced Search Section -->
+<div class="container position-relative" style="margin-top: -100px; z-index: 100;">
+    <div class="search-container mx-auto">
+        <form class="row g-3 search-row">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Package Type</label>
+                <select class="form-select search-input">
+                    <option selected>Select Type</option>
+                    <option>Daycation</option>
+                    <option>Staycation</option>
+                </select>
             </div>
-        </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Location</label>
+                <input type="text" class="form-control search-input" placeholder="Where to?">
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Check-in Date</label>
+                <input type="date" class="form-control search-input">
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-warning w-100 py-2 search-input">
+                    <i class="fas fa-search me-2"></i>Find Resorts
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-        <!-- Resort 2 -->
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 mb-4 p-3" data-aos="fade-up">
-                <h5 class="card-title">Trident Hotel Cochin</h5>
-                <p class="card-text"><strong>Location:</strong> Kochi</p>
-                <p class="card-text"><strong>Rating:</strong> ⭐4.5</p>
-                <p class="card-text"><strong>Price:</strong> $6441</p>
+<!-- Enhanced Benefits Section -->
+<section class="benefits-section my-5">
+    <div class="container">
+        <h2 class="text-center mb-5" data-aos="fade-up">Experience the Future of Resort Booking</h2>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="benefit-item" data-aos="fade-up">
+                    <i class="fas fa-robot feature-icon"></i>
+                    <h4>Smart AI</h4>
+                    <p>Personalized recommendations based on your preferences</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="benefit-item" data-aos="fade-up" data-aos-delay="100">
+                    <i class="fas fa-percentage feature-icon"></i>
+                    <h4>Dynamic Pricing</h4>
+                    <p>Get the best rates based on real-time demand</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="benefit-item" data-aos="fade-up" data-aos-delay="200">
+                    <i class="fas fa-magic feature-icon"></i>
+                    <h4>Custom Packages</h4>
+                    <p>Tailor your experience with add-on services</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="benefit-item" data-aos="fade-up" data-aos-delay="300">
+                    <i class="fas fa-clock feature-icon"></i>
+                    <h4>Instant Booking</h4>
+                    <p>Real-time availability and confirmation</p>
+                </div>
             </div>
         </div>
+    </div>
+</section>
 
-        <!-- Resort 3 -->
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 mb-4 p-3" data-aos="fade-up">
-                <h5 class="card-title">The Galaxy Suites</h5>
-                <p class="card-text"><strong>Location:</strong> Kochi</p>
-                <p class="card-text"><strong>Rating:</strong> ⭐3.8</p>
-                <p class="card-text"><strong>Price:</strong> $831</p>
+<!-- Enhanced Package Cards -->
+<section id="packages" class="container my-5">
+    <h2 class="text-center mb-5 fade-up">Featured Packages</h2>
+    <div class="row g-4">
+        {% for resort in resorts %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card package-card" data-aos="fade-up">
+                {% if resort.is_seasonal %}
+                <span class="seasonal-badge">Seasonal Offer</span>
+                {% endif %}
+                <span class="package-badge">{{ resort.package_type }}</span>
+                <div class="overflow-hidden">
+                    <img src="{{ resort.image_url }}" class="package-image w-100" alt="{{ resort.name }}">
+                </div>
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">{{ resort.name }}</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><i class="fas fa-map-marker-alt text-warning me-2"></i>{{ resort.location }}</span>
+                        <span class="text-warning">⭐ {{ resort.rating }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div class="price-tag">
+                            <small class="text-muted">Starting from</small>
+                            <h5 class="text-warning mb-0">${{ resort.price }}</h5>
+                        </div>
+                        <a href="{% url 'recommend_page' %}" class="btn btn-warning">
+                            View Details
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
+        {% endfor %}
+    </div>
+</section>
 
-        <!-- Resort 4 -->
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 mb-4 p-3" data-aos="fade-up">
-                <h5 class="card-title">The Renai Cochin</h5>
-                <p class="card-text"><strong>Location:</strong> Kochi</p>
-                <p class="card-text"><strong>Rating:</strong> ⭐4.2</p>
-                <p class="card-text"><strong>Price:</strong> $2768</p>
-            </div>
-        </div>
-
-        <!-- Resort 5 -->
-        <div class="col-md-4">
-            <div class="card shadow-lg border-0 mb-4 p-3" data-aos="fade-up">
-                <h5 class="card-title">Ramada by Wyndham Kochi</h5>
-                <p class="card-text"><strong>Location:</strong> Kochi</p>
-                <p class="card-text"><strong>Rating:</strong> ⭐4.5</p>
-                <p class="card-text"><strong>Price:</strong> $8938</p>
-            </div>
-        </div>
+<!-- Call to Action -->
+<section class="bg-dark text-white py-5 text-center">
+    <div class="container">
+        <h3 class="mb-4">Ready to Plan Your Perfect Getaway?</h3>
+        <p class="lead mb-4">Let our AI help you discover the ideal resort package for your needs</p>
+        <a href="{% url 'recommend_page' %}" class="btn btn-warning btn-lg">Get Started</a>
     </div>
 </section>
 
@@ -168,7 +485,22 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 <script>
-    AOS.init(); // Initialize animations
+    AOS.init({
+        duration: 800,
+        once: true
+    });
+
+    // Custom fade-up animation
+    const fadeUpElements = document.querySelectorAll('.fade-up');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    });
+
+    fadeUpElements.forEach(element => observer.observe(element));
 </script>
 
 </body>
