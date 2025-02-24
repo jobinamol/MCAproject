@@ -132,6 +132,41 @@
                 padding: 10px;
             }
         }
+
+        .menu-item a {
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            display: block;
+            width: 100%;
+        }
+
+        .menu-item a:hover {
+            background: rgba(255,255,255,0.1);
+            text-decoration: none;
+        }
+
+        .menu-item.active a {
+            background: var(--accent-color);
+            color: var(--primary-color) !important;
+        }
+
+        /* Mobile optimization */
+        @media (max-width: 768px) {
+            .menu-item a {
+                padding: 10px;
+                text-align: center;
+            }
+
+            .menu-item a span {
+                display: none;
+            }
+
+            .menu-item a i {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -144,28 +179,40 @@
         </div>
         <ul class="sidebar-menu">
             <li class="menu-item active">
-                <i class="fas fa-home"></i>
-                <span>Overview</span>
+                <a href="{% url 'dashboard' %}" class="text-decoration-none text-white d-block">
+                    <i class="fas fa-home"></i>
+                    <span>Overview</span>
+                </a>
             </li>
             <li class="menu-item">
-                <i class="fas fa-box"></i>
-                <span>Packages</span>
+                <a href="{% url 'manage_packages' %}" class="text-decoration-none text-white d-block">
+                    <i class="fas fa-box"></i>
+                    <span>Packages</span>
+                </a>
             </li>
             <li class="menu-item">
-                <i class="fas fa-calendar"></i>
-                <span>Bookings</span>
+                <a href="{% url 'manage_bookings' %}" class="text-decoration-none text-white d-block">
+                    <i class="fas fa-calendar"></i>
+                    <span>Bookings</span>
+                </a>
             </li>
             <li class="menu-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Analytics</span>
+                <a href="{% url 'analytics' %}" class="text-decoration-none text-white d-block">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
             </li>
             <li class="menu-item">
-                <i class="fas fa-star"></i>
-                <span>Reviews</span>
+                <a href="{% url 'reviews' %}" class="text-decoration-none text-white d-block">
+                    <i class="fas fa-star"></i>
+                    <span>Reviews</span>
+                </a>
             </li>
             <li class="menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
+                <a href="#" class="text-decoration-none text-white d-block">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
             </li>
         </ul>
     </div>
@@ -251,6 +298,20 @@
                 }
             });
         }
+    });
+
+    // Update active menu item based on current URL
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const menuItems = document.querySelectorAll('.menu-item');
+        
+        menuItems.forEach(item => {
+            const link = item.querySelector('a');
+            if (link && link.getAttribute('href') === currentPath) {
+                menuItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            }
+        });
     });
 </script>
 
