@@ -986,6 +986,66 @@
                 padding: 0 var(--spacing-xs);
             }
         }
+
+        .dropdown-menu {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-item {
+            color: white;
+            padding: 0.7rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 0.5rem 0;
+        }
+
+        .nav-item.dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .dropdown-menu {
+                background: transparent;
+                border: none;
+                padding: 0;
+            }
+
+            .dropdown-item {
+                padding: 0.5rem 1rem;
+                color: white !important;
+            }
+
+            .dropdown-divider {
+                display: none;
+            }
+        }
+
+        /* Animation for dropdown */
+        .dropdown-menu {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -1017,6 +1077,46 @@
                 <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'recommend_page' %}">Recommendations</a></li>
                 <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                
+                <!-- Resort Owner Dashboard Link -->
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i>
+                            Resort Owner
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'home' %}">
+                                    <i class="fas fa-box me-2"></i>Manage Packages
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'home' %}">
+                                    <i class="fas fa-calendar-check me-2"></i>Bookings
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'home' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Resort Login
+                        </a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </div>
@@ -1311,7 +1411,6 @@
                 entry.target.classList.add('active');
             }
         });
-    });
 
     fadeUpElements.forEach(element => observer.observe(element));
 
@@ -1412,6 +1511,34 @@
                     navbarCollapse.classList.contains('show') ? 'auto' : 'hidden';
             });
         }
+    });
+
+    // Enhanced dropdown behavior
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropdowns = document.querySelectorAll('.dropdown');
+        
+        dropdowns.forEach(dropdown => {
+            // Handle hover on desktop
+            if (window.innerWidth > 768) {
+                dropdown.addEventListener('mouseenter', function() {
+                    this.querySelector('.dropdown-menu').classList.add('show');
+                });
+                
+                dropdown.addEventListener('mouseleave', function() {
+                    this.querySelector('.dropdown-menu').classList.remove('show');
+                });
+            }
+            
+            // Handle click on mobile
+            const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
+            dropdownToggle.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    const dropdownMenu = this.nextElementSibling;
+                    dropdownMenu.classList.toggle('show');
+                }
+            });
+        });
     });
 </script>
 
