@@ -2,255 +2,168 @@
 {% load custom_filters %}
 {% block content %}
 
-<div class="analytics-container">
-    <!-- Page Header with Advanced Filters -->
-    <div class="page-header mb-4 bg-white p-4 rounded-4 shadow-sm">
-        <div class="row align-items-center">
-            <div class="col-lg-4">
-                <h2 class="fw-bold mb-1">Analytics Dashboard</h2>
-                <p class="text-muted mb-0">Real-time resort performance insights</p>
+<div class="analytics-container p-4">
+    <!-- Welcome Section -->
+    <div class="welcome-section mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="display-6 mb-1">Welcome Back, {{ request.user.first_name|default:'Resort Owner' }}! 👋</h1>
+                <p class="text-muted">Here's what's happening with your resort today.</p>
             </div>
-            <div class="col-lg-8">
-                <div class="d-flex gap-3 justify-content-lg-end mt-3 mt-lg-0">
-                    <div class="date-range-picker">
-                        <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0">
-                                <i class="fas fa-calendar"></i>
-                            </span>
-                            <input type="text" class="form-control border-start-0 ps-0" 
-                                   placeholder="Select Date Range">
-                        </div>
-                    </div>
-                    <select class="form-select" style="max-width: 200px;">
-                        <option>All Properties</option>
-                        <option>Beach Resort</option>
-                        <option>Mountain Villa</option>
-                        <option>City Hotel</option>
-                    </select>
-                    <button class="btn btn-primary d-flex align-items-center">
-                        <i class="fas fa-sync-alt me-2"></i>
-                        <span>Refresh</span>
-                    </button>
-                </div>
+            <div class="d-flex gap-3">
+                <button class="btn btn-light" data-bs-toggle="tooltip" title="Refresh Data">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="tooltip" title="Download Report">
+                    <i class="fas fa-download me-2"></i>Export Report
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Add this in the filters section -->
-    <div class="analytics-filters bg-white p-4 rounded-4 shadow-sm mb-4">
-        <form id="analyticsFilterForm" class="row g-3 align-items-end">
+    <!-- Quick Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card gradient-purple">
+                <div class="stat-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>${{ summary.total_revenue|floatformat:0 }}</h3>
+                    <p>Total Revenue</p>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>{{ summary.revenue_growth }}%</span>
+                        <small class="text-light opacity-75">vs last month</small>
+                    </div>
+                </div>
+                <div class="stat-chart">
+                    <canvas id="revenueSparkline" height="50"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Similar cards for Bookings, Occupancy, and Satisfaction -->
+    </div>
+
+    <!-- Date Range & Filters -->
+    <div class="filters-section bg-white rounded-4 shadow-sm p-4 mb-4">
+        <div class="row align-items-center">
             <div class="col-md-4">
-                <label class="form-label">Date Range</label>
-                <div class="input-group">
-                    <input type="text" id="daterangepicker" class="form-control" 
-                           value="{{ date_range.start }} - {{ date_range.end }}">
-                    <span class="input-group-text">
-                        <i class="fas fa-calendar"></i>
-                    </span>
+                <div class="date-picker-wrapper">
+                    <label class="form-label fw-semibold">Date Range</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="fas fa-calendar text-primary"></i>
+                        </span>
+                        <input type="text" id="daterangepicker" 
+                               class="form-control border-start-0 ps-0"
+                               value="{{ date_range.start }} - {{ date_range.end }}">
+                    </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Property</label>
-                <select class="form-select" name="property">
+                <label class="form-label fw-semibold">Property</label>
+                <select class="form-select form-select-lg">
                     <option value="all">All Properties</option>
                     {% for property in property_data %}
-                    <option value="{{ property.id }}">{{ property.name }}</option>
+                        <option value="{{ property.id }}">{{ property.name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Comparison</label>
-                <select class="form-select" name="comparison">
-                    <option value="previous_period">Previous Period</option>
-                    <option value="last_year">Last Year</option>
-                    <option value="custom">Custom</option>
+                <label class="form-label fw-semibold">Compare With</label>
+                <select class="form-select form-select-lg">
+                    <option>Previous Period</option>
+                    <option>Last Year</option>
+                    <option>Custom Range</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-sync-alt me-2"></i>Update
+                <label class="form-label">&nbsp;</label>
+                <button class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-filter me-2"></i>Apply
                 </button>
             </div>
-        </form>
+        </div>
     </div>
 
-    <!-- Enhanced Metrics Cards -->
+    <!-- Performance Charts -->
     <div class="row g-4 mb-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="metric-card gradient-purple">
-                <div class="metric-content">
-                    <div class="metric-label">Total Revenue</div>
-                    <div class="metric-value">$45,850</div>
-                    <div class="metric-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span class="trend-value">8.5%</span>
-                        <span class="trend-period">vs last month</span>
-                    </div>
-                    <div class="mini-chart" id="revenueSparkline"></div>
-                </div>
-                <div class="metric-icon">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="metric-card trend-up">
-                <div class="metric-content">
-                    <div class="metric-label">Guest Satisfaction</div>
-                    <div class="metric-value">4.8<span class="small">/5.0</span></div>
-                    <div class="metric-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span class="trend-value">12%</span>
-                        <span class="trend-period">vs last month</span>
-                    </div>
-                </div>
-                <div class="metric-icon">
-                    <i class="fas fa-smile"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="metric-card trend-down">
-                <div class="metric-content">
-                    <div class="metric-label">Cancellation Rate</div>
-                    <div class="metric-value">3.2%</div>
-                    <div class="metric-trend">
-                        <i class="fas fa-arrow-down"></i>
-                        <span class="trend-value">5%</span>
-                        <span class="trend-period">vs last month</span>
-                    </div>
-                </div>
-                <div class="metric-icon">
-                    <i class="fas fa-ban"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="metric-card">
-                <div class="metric-content">
-                    <div class="metric-label">Average Stay</div>
-                    <div class="metric-value">3.5<span class="small">days</span></div>
-                    <div class="metric-trend neutral">
-                        <span class="trend-period">No significant change</span>
-                    </div>
-                </div>
-                <div class="metric-icon">
-                    <i class="fas fa-bed"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Advanced Charts Section -->
-    <div class="row mb-4">
         <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white border-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1">Performance Analytics</h5>
-                            <p class="text-muted mb-0 small">Revenue vs Occupancy Rate</p>
-                        </div>
-                        <div class="chart-controls d-flex gap-2">
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-outline-secondary active">Revenue</button>
-                                <button class="btn btn-sm btn-outline-secondary">Occupancy</button>
-                                <button class="btn btn-sm btn-outline-secondary">Combined</button>
-                            </div>
-                            <select class="form-select form-select-sm" style="width: 100px;">
-                                <option>Weekly</option>
-                                <option>Monthly</option>
-                                <option>Yearly</option>
-                            </select>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <h5 class="mb-1">Revenue & Occupancy Trends</h5>
+                        <p class="text-muted mb-0">Daily performance analysis</p>
+                    </div>
+                    <div class="chart-actions">
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary active">Week</button>
+                            <button class="btn btn-sm btn-outline-primary">Month</button>
+                            <button class="btn btn-sm btn-outline-primary">Year</button>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="chart-body">
                     <canvas id="performanceChart" height="300"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white border-0">
-                    <h5 class="mb-1">Booking Sources</h5>
-                    <p class="text-muted mb-0 small">Distribution of reservations</p>
+            <div class="chart-card h-100">
+                <div class="chart-header">
+                    <div>
+                        <h5 class="mb-1">Guest Demographics</h5>
+                        <p class="text-muted mb-0">Visitor composition</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="bookingSourcesChart" height="300"></canvas>
+                <div class="chart-body">
+                    <canvas id="demographicsChart" height="300"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Real-time Insights Section -->
+    <!-- Guest Satisfaction -->
     <div class="row mb-4">
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="chart-header">
                     <div>
                         <h5 class="mb-1">Guest Satisfaction Metrics</h5>
-                        <p class="text-muted mb-0 small">Last 30 days analysis</p>
+                        <p class="text-muted mb-0">Based on {{ total_reviews }} reviews</p>
                     </div>
-                    <button class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-download me-2"></i>Export
-                    </button>
                 </div>
-                <div class="card-body">
-                    <div class="satisfaction-metrics">
+                <div class="chart-body">
+                    <div class="row g-4">
                         {% for metric in satisfaction_metrics %}
-                        <div class="metric-row d-flex align-items-center mb-4">
-                            <div class="metric-icon-wrapper me-3">
-                                <i class="fas {{ metric.icon }}"></i>
-                            </div>
-                            <div class="metric-details flex-grow-1">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span class="fw-medium">{{ metric.name }}</span>
-                                    <span class="rating">{{ metric.rating }}/5</span>
+                        <div class="col-md-6">
+                            <div class="satisfaction-metric">
+                                <div class="metric-header">
+                                    <div class="metric-icon">
+                                        <i class="fas {{ metric.icon }}"></i>
+                                    </div>
+                                    <div class="metric-info">
+                                        <h6 class="mb-0">{{ metric.name }}</h6>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rating">
+                                                <span class="h4 mb-0">{{ metric.rating }}</span>
+                                                <small>/5</small>
+                                            </div>
+                                            <div class="trend-badge positive">
+                                                <i class="fas fa-arrow-up"></i>
+                                                {{ metric.trend }}%
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="progress" style="height: 6px;">
+                                <div class="progress mt-3" style="height: 8px;">
                                     <div class="progress-bar bg-success" 
                                          style="width: {% widthratio metric.rating 5 100 %}%"></div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-1">
+                                <div class="metric-footer mt-2">
                                     <small class="text-muted">Based on {{ metric.reviews }} reviews</small>
-                                    <small class="trend-up">+{{ metric.trend }}%</small>
                                 </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white border-0">
-                    <h5 class="mb-1">Predictive Analytics</h5>
-                    <p class="text-muted mb-0 small">AI-driven insights</p>
-                </div>
-                <div class="card-body">
-                    <div class="prediction-cards">
-                        {% for prediction in predictions %}
-                        <div class="prediction-card mb-3 p-3 rounded-3 border">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="prediction-period fw-medium">{{ prediction.period }}</span>
-                                <span class="confidence-badge badge bg-success">
-                                    {{ prediction.confidence }}% Confidence
-                                </span>
-                            </div>
-                            <div class="prediction-details">
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                        <div class="progress-bar bg-primary" 
-                                             style="width: {{ prediction.occupancy }}%"></div>
-                                    </div>
-                                    <span class="occupancy-value">{{ prediction.occupancy }}%</span>
-                                </div>
-                                <p class="recommendation mb-0 small">
-                                    <i class="fas fa-lightbulb text-warning me-2"></i>
-                                    {{ prediction.recommendation }}
-                                </p>
                             </div>
                         </div>
                         {% endfor %}
@@ -261,210 +174,154 @@
     </div>
 </div>
 
-<!-- Enhanced Styles -->
 <style>
-    .gradient-purple {
-        background: linear-gradient(135deg, #6f42c1 0%, #6610f2 100%);
-        color: white;
-    }
+:root {
+    --primary: #4e73df;
+    --success: #1cc88a;
+    --warning: #f6c23e;
+    --danger: #e74a3b;
+    --purple: #6f42c1;
+    --card-radius: 1rem;
+}
 
-    .gradient-blue {
-        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
-        color: white;
-    }
+/* Enhanced Card Styles */
+.stat-card {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+}
 
-    .metric-card {
-        border-radius: 16px;
-        padding: 25px;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
+.gradient-purple {
+    background: linear-gradient(135deg, #6f42c1 0%, #6610f2 100%);
+    color: white;
+}
 
-    .metric-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    }
+.gradient-blue {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+}
 
-    .metric-icon-wrapper {
-        width: 45px;
-        height: 45px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-    }
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.15);
+}
 
-    .satisfaction-metrics .metric-row {
-        padding: 15px;
-        border-radius: 12px;
-        transition: background-color 0.3s ease;
-    }
+.stat-content {
+    position: relative;
+    z-index: 1;
+}
 
-    .satisfaction-metrics .metric-row:hover {
-        background-color: #f8f9fa;
-    }
+.stat-icon {
+    position: absolute;
+    right: -1rem;
+    top: -1rem;
+    font-size: 5rem;
+    opacity: 0.1;
+    transform: rotate(15deg);
+    transition: all 0.3s ease;
+}
 
-    .prediction-card {
-        background: white;
-        transition: all 0.3s ease;
-    }
+.stat-card:hover .stat-icon {
+    transform: rotate(0deg) scale(1.1);
+    opacity: 0.15;
+}
 
-    .prediction-card:hover {
-        transform: translateX(5px);
-        border-color: var(--primary) !important;
-    }
+.chart-card {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    height: 100%;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+}
 
-    .confidence-badge {
-        font-size: 0.8rem;
-        padding: 0.25rem 0.5rem;
-    }
+.satisfaction-metric {
+    background: #f8f9fc;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+}
 
-    /* Add more custom styles... */
+.satisfaction-metric:hover {
+    background: #f1f3f9;
+    transform: translateY(-2px);
+}
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(78, 115, 223, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+.trend-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.trend-badge.positive {
+    background: rgba(28, 200, 138, 0.1);
+    color: var(--success);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .welcome-section h1 {
+        font-size: 1.5rem;
+    }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+}
 </style>
 
 {% block extra_scripts %}
-{{ block.super }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+<script src="https://cdn.jsdelivr.net/npm/moment"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker"></script>
 
 <script>
-    // Enhanced Performance Chart
-    const performanceChart = new Chart(
-        document.getElementById('performanceChart').getContext('2d'),
-        {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Revenue',
-                    data: [4500, 5200, 4800, 5900, 6100, 5500, 6800],
-                    borderColor: '#6f42c1',
-                    backgroundColor: 'rgba(111, 66, 193, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }, {
-                    label: 'Occupancy',
-                    data: [75, 82, 78, 85, 90, 88, 92],
-                    borderColor: '#0dcaf0',
-                    backgroundColor: 'rgba(13, 202, 240, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            drawBorder: false,
-                            color: 'rgba(0,0,0,0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        }
-    );
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+});
 
-    // Add more interactive charts and real-time updates...
+// Initialize date range picker
+$('#daterangepicker').daterangepicker({
+    startDate: moment('{{ date_range.start }}'),
+    endDate: moment('{{ date_range.end }}'),
+    ranges: {
+        'Today': [moment(), moment()],
+        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+        'This Month': [moment().startOf('month'), moment().endOf('month')],
+        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+    }
+});
 
-    $(document).ready(function() {
-        // Initialize date range picker
-        $('#daterangepicker').daterangepicker({
-            startDate: moment('{{ date_range.start }}'),
-            endDate: moment('{{ date_range.end }}'),
-            ranges: {
-               'Today': [moment(), moment()],
-               'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-               'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-               'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-               'This Month': [moment().startOf('month'), moment().endOf('month')],
-               'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-            }
-        });
+// Initialize charts with smooth animations
+function initializeCharts() {
+    // Add your chart initialization code here with enhanced styling
+}
 
-        // Handle form submission
-        $('#analyticsFilterForm').on('submit', function(e) {
-            e.preventDefault();
-            const dates = $('#daterangepicker').data('daterangepicker');
-            
-            $.ajax({
-                url: '{% url "analytics" %}',
-                data: {
-                    start_date: dates.startDate.format('YYYY-MM-DD'),
-                    end_date: dates.endDate.format('YYYY-MM-DD'),
-                    property: $('select[name="property"]').val(),
-                    comparison: $('select[name="comparison"]').val()
-                },
-                success: function(response) {
-                    updateDashboard(response);
-                }
-            });
-        });
-
-        function updateDashboard(data) {
-            // Update summary cards
-            updateMetricCard('revenue', data.summary.total_revenue);
-            updateMetricCard('bookings', data.summary.total_bookings);
-            updateMetricCard('occupancy', data.summary.avg_occupancy);
-            
-            // Update charts
-            updatePerformanceChart(data.daily_data);
-            updateMetricsChart(data.satisfaction_metrics);
-            
-            // Update predictions
-            updatePredictions(data.predictions);
-        }
-
-        function updateMetricCard(metric, value) {
-            const card = $(`#${metric}Card`);
-            card.find('.metric-value').text(formatValue(metric, value));
-            // Add animation
-            card.addClass('pulse').delay(200).queue(function(next){
-                $(this).removeClass('pulse');
-                next();
-            });
-        }
-
-        // Add more update functions...
-    });
+document.addEventListener('DOMContentLoaded', initializeCharts);
 </script>
-
-<style>
-/* Add animation styles */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-
-.pulse {
-    animation: pulse 0.3s ease-in-out;
-}
-
-.date-filter-active {
-    background-color: var(--bs-primary);
-    color: white;
-}
-</style>
 {% endblock %}
+
 {% endblock %}
