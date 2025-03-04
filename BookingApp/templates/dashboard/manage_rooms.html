@@ -1,0 +1,118 @@
+{% extends 'dashboard/base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Room Management</h2>
+    
+    <div class="row g-4">
+        {% for room in rooms %}
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="room-card">
+                <div class="room-image">
+                    <img src="{{ room.image }}" alt="{{ room.name }}">
+                    <div class="room-status {{ room.status_class }}">
+                        {{ room.status }}
+                    </div>
+                </div>
+                <div class="room-info">
+                    <h4>{{ room.name }}</h4>
+                    <p class="room-type">{{ room.type }}</p>
+                    <div class="room-details">
+                        <span><i class="fas fa-bed"></i> {{ room.capacity }} Guests</span>
+                        <span><i class="fas fa-vector-square"></i> {{ room.size }}m²</span>
+                    </div>
+                    <div class="room-price">
+                        <h5>${{ room.price }}/night</h5>
+                        <div class="price-trend {{ room.trend_class }}">
+                            {{ room.price_trend }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+/* Room Card Styles */
+.room-card {
+    background: var(--dark-card);
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.room-card:hover {
+    transform: translateY(-5px);
+}
+
+.room-image {
+    position: relative;
+    height: 200px;
+}
+
+.room-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.room-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.room-status.success {
+    background: rgba(1, 181, 116, 0.1);
+    color: var(--dark-success);
+}
+
+.room-info {
+    padding: 1.5rem;
+}
+
+.room-type {
+    color: var(--dark-text-secondary);
+    margin-bottom: 1rem;
+}
+
+.room-details {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    color: var(--dark-text-secondary);
+}
+
+.room-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.price-trend {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+}
+
+.price-trend.positive {
+    background: rgba(1, 181, 116, 0.1);
+    color: var(--dark-success);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .room-image {
+        height: 160px;
+    }
+}
+</style>
+{% endblock %} 

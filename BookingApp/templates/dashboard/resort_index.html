@@ -1,0 +1,225 @@
+{% extends 'dashboard/base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner mb-4">
+        <div class="welcome-content">
+            <h1>Welcome back, Resort Owner 👋</h1>
+            <p>Here's what's happening with your resort today.</p>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-outline-light btn-lg">
+                <i class="fas fa-download"></i> Reports
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-content">
+                    <h3>Total Revenue</h3>
+                    <div class="stat-value">
+                        <h2>$45,850</h2>
+                        <span class="badge bg-success">+12.5%</span>
+                    </div>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+        </div>
+        <!-- Similar cards for Occupancy, Rating -->
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row g-4">
+        <!-- Room Management Section -->
+        <div class="col-xl-8">
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3>Room Management</h3>
+                    </div>
+                    <div class="room-categories mt-3">
+                        <button class="btn btn-outline-primary active">All Rooms</button>
+                        <button class="btn btn-outline-primary">Luxury Suites</button>
+                        <button class="btn btn-outline-primary">Deluxe Rooms</button>
+                        <button class="btn btn-outline-primary">Standard Rooms</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="room-grid">
+                        {% for room in rooms %}
+                        <div class="room-card">
+                            <div class="room-image">
+                                <img src="{{ room.image }}" alt="{{ room.name }}">
+                                <div class="room-status {{ room.status_class }}">
+                                    {{ room.status }}
+                                </div>
+                            </div>
+                            <div class="room-info">
+                                <h4>{{ room.name }}</h4>
+                                <p class="room-type">{{ room.type }}</p>
+                                <div class="room-details">
+                                    <span><i class="fas fa-bed"></i> {{ room.capacity }} Guests</span>
+                                    <span><i class="fas fa-vector-square"></i> {{ room.size }}m²</span>
+                                </div>
+                                <div class="room-price">
+                                    <h5>${{ room.price }}/night</h5>
+                                    <div class="price-trend {{ room.trend_class }}">
+                                        {{ room.price_trend }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="col-xl-4">
+            <!-- Quick Actions -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="action-grid">
+                        <button class="action-btn">
+                            <i class="fas fa-box-open"></i>
+                            <span>Packages</span>
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-concierge-bell"></i>
+                            <span>Services</span>
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Analytics</span>
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Enhanced Styles */
+.welcome-banner {
+    background: linear-gradient(135deg, #4318FF 0%, #868CFF 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-card {
+    background: var(--dark-card);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.room-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.room-card {
+    background: var(--dark-card);
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.room-card:hover {
+    transform: translateY(-5px);
+}
+
+.room-image {
+    position: relative;
+    height: 200px;
+}
+
+.room-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.room-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.room-info {
+    padding: 1.5rem;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.action-btn {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: var(--dark-primary);
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .room-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %} 
