@@ -2,6 +2,12 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+import joblib
+import os
+import pandas as pd
 
 # Create your models here.
 
@@ -216,3 +222,160 @@ class VenueBooking(models.Model):
             (self.end_time.minute - self.start_time.minute) / 60
         )
         return (self.venue.price_per_hour * duration_hours) + self.event_type.base_price
+
+class FoodCategory(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='food_categories/', null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Food Categories"
+
+class MenuItem(models.Model):
+    name = models.CharField(max_length=100)
+    category = models.ForeignKey(FoodCategory, on_delete=models.PROTECT)
+    description = models.TextField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    image = models.ImageField(upload_to='menu_items/', null=True, blank=True)
+    preparation_time = models.IntegerField(help_text="Preparation time in minutes")
+    is_vegetarian = models.BooleanField(default=False)
+    is_vegan = models.BooleanField(default=False)
+    is_gluten_free = models.BooleanField(default=False)
+    spice_level = models.IntegerField(
+        choices=[(i, str(i)) for i in range(6)],  # 0-5 scale
+        default=0
+    )
+    is_available = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+class Order(models.Model):
+    ORDER_STATUS = (
+        ('pending', 'Pending'),
+        ('preparing', 'Preparing'),
+        ('ready', 'Ready'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    ORDER_TYPE = (
+        ('dine_in', 'Dine In'),
+        ('room_service', 'Room Service'),
+        ('takeaway', 'Takeaway'),
+    )
+
+    room = models.ForeignKey('Room', on_delete=models.SET_NULL, null=True, blank=True)
+    customer_name = models.CharField(max_length=100)
+    table_number = models.IntegerField(null=True, blank=True)
+    order_type = models.CharField(max_length=20, choices=ORDER_TYPE)
+    status = models.CharField(max_length=20, choices=ORDER_STATUS, default='pending')
+    special_instructions = models.TextField(blank=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Order #{self.id} - {self.customer_name}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT)
+    quantity = models.IntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    notes = models.CharField(max_length=200, blank=True)
+
+    def __str__(self):
+        return f"{self.quantity}x {self.menu_item.name}"
+
+    @property
+    def subtotal(self):
+        return self.quantity * self.unit_price
+
+class SeasonalDemand(models.Model):
+    CATEGORY_CHOICES = (
+        ('room', 'Room'),
+        ('package', 'Package'),
+        ('venue', 'Venue'),
+    )
+
+    date = models.DateField()
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    item_id = models.IntegerField()  # ID of room, package, or venue
+    bookings_count = models.IntegerField()
+    revenue = models.DecimalField(max_digits=10, decimal_places=2)
+    occupancy_rate = models.FloatField()  # For rooms and venues
+    weather_condition = models.CharField(max_length=50, null=True, blank=True)
+    special_event = models.CharField(max_length=100, null=True, blank=True)
+    
+    class Meta:
+        unique_together = ['date', 'category', 'item_id']
+
+    @classmethod
+    def train_prediction_model(cls, category):
+        """Train ML model for demand prediction."""
+        # Get historical data
+        data = cls.objects.filter(category=category).values()
+        if not data:
+            return None
+
+        # Prepare features
+        df = pd.DataFrame(data)
+        
+        # Feature engineering
+        df['month'] = df['date'].dt.month
+        df['day_of_week'] = df['date'].dt.dayofweek
+        df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
+        df['is_holiday'] = df['special_event'].notna().astype(int)
+        
+        # Prepare features and target
+        features = ['month', 'day_of_week', 'is_weekend', 'is_holiday', 
+                   'occupancy_rate']
+        X = df[features]
+        y = df['bookings_count']
+        
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
+        
+        # Train model
+        model = RandomForestRegressor(n_estimators=100, random_state=42)
+        model.fit(X_train, y_train)
+        
+        # Save model
+        model_path = f'ml_models/{category}_demand_model.joblib'
+        os.makedirs('ml_models', exist_ok=True)
+        joblib.dump(model, model_path)
+        
+        return model
+
+    @classmethod
+    def predict_demand(cls, category, date, occupancy_rate=None):
+        """Predict demand for a specific date."""
+        try:
+            model_path = f'ml_models/{category}_demand_model.joblib'
+            model = joblib.load(model_path)
+            
+            # Prepare features for prediction
+            features = {
+                'month': date.month,
+                'day_of_week': date.weekday(),
+                'is_weekend': 1 if date.weekday() >= 5 else 0,
+                'is_holiday': 0,  # You can enhance this with a holiday API
+                'occupancy_rate': occupancy_rate or 0.0
+            }
+            
+            # Make prediction
+            prediction = model.predict([list(features.values())])[0]
+            return round(prediction)
+            
+        except Exception as e:
+            print(f"Prediction error: {str(e)}")
+            return None

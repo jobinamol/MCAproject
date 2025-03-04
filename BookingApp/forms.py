@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
-from .models import Package, Activity, PackageActivity, Room, RoomCategory, RoomBooking, Venue, EventType, VenueBooking
+from .models import Package, Activity, PackageActivity, Room, RoomCategory, RoomBooking, Venue, EventType, VenueBooking, FoodCategory, MenuItem, Order, OrderItem
 from django.utils import timezone
 
 class PackageForm(forms.ModelForm):
@@ -145,4 +145,38 @@ class VenueBookingForm(forms.ModelForm):
         if event_date and event_date < timezone.now().date():
             raise forms.ValidationError("Event date cannot be in the past")
 
-        return cleaned_data 
+        return cleaned_data
+
+class FoodCategoryForm(forms.ModelForm):
+    class Meta:
+        model = FoodCategory
+        fields = ['name', 'description', 'image', 'is_active']
+
+class MenuItemForm(forms.ModelForm):
+    class Meta:
+        model = MenuItem
+        fields = [
+            'name', 'category', 'description', 'price', 'image',
+            'preparation_time', 'is_vegetarian', 'is_vegan',
+            'is_gluten_free', 'spice_level', 'is_available'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'price': forms.NumberInput(attrs={'step': '0.01'}),
+        }
+
+class OrderForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = [
+            'customer_name', 'room', 'table_number', 'order_type',
+            'special_instructions'
+        ]
+        widgets = {
+            'special_instructions': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class OrderItemForm(forms.ModelForm):
+    class Meta:
+        model = OrderItem
+        fields = ['menu_item', 'quantity', 'notes'] 

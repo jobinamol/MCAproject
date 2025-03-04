@@ -6,8 +6,11 @@ from django.utils import timezone
 import json
 import random  # For demo data, replace with actual data in production
 from django.contrib import messages
-from .models import Package, Activity, PackageActivity, PackageBooking, Room, RoomCategory, RoomBooking, Venue, VenueBooking
-from .forms import PackageForm, ActivityForm, PackageActivityForm, ActivityFormSet, RoomForm, RoomCategoryForm, RoomBookingForm, VenueForm, VenueBookingForm
+from .models import Package, Activity, PackageActivity, PackageBooking, Room, RoomCategory, RoomBooking, Venue, VenueBooking, FoodCategory, MenuItem, Order
+from .forms import PackageForm, ActivityForm, PackageActivityForm, ActivityFormSet, RoomForm, RoomCategoryForm, RoomBookingForm, VenueForm, VenueBookingForm, FoodCategoryForm, MenuItemForm, OrderForm
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from .services.demand_analyzer import DemandAnalyzer
 
 def home(request):
     """Render the home page."""
@@ -537,3 +540,139 @@ def add_booking(request, venue_id):
         'venue': venue,
         'action': 'Add'
     })
+
+def manage_menu(request):
+    """View for managing menu items."""
+    categories = FoodCategory.objects.filter(is_active=True)
+    menu_items = MenuItem.objects.select_related('category').all()
+    
+    # Get menu statistics
+    total_items = menu_items.count()
+    available_items = menu_items.filter(is_available=True).count()
+    vegetarian_items = menu_items.filter(is_vegetarian=True).count()
+    
+    context = {
+        'categories': categories,
+        'menu_items': menu_items,
+        'total_items': total_items,
+        'available_items': available_items,
+        'vegetarian_items': vegetarian_items,
+    }
+    return render(request, 'dashboard/manage_menu.html', context)
+
+def add_menu_item(request):
+    """View for adding a new menu item."""
+    if request.method == 'POST':
+        form = MenuItemForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Menu item added successfully!')
+            return redirect('manage_menu')
+    else:
+        form = MenuItemForm()
+    return render(request, 'dashboard/menu_item_form.html', {'form': form, 'action': 'Add'})
+
+def edit_menu_item(request, pk):
+    """View for editing an existing menu item."""
+    menu_item = get_object_or_404(MenuItem, pk=pk)
+    if request.method == 'POST':
+        form = MenuItemForm(request.POST, request.FILES, instance=menu_item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Menu item updated successfully!')
+            return redirect('manage_menu')
+    else:
+        form = MenuItemForm(instance=menu_item)
+    return render(request, 'dashboard/menu_item_form.html', {'form': form, 'action': 'Edit'})
+
+def manage_orders(request):
+    """View for managing food orders."""
+    orders = Order.objects.all().order_by('-created_at')
+    pending_orders = orders.filter(status='pending').count()
+    preparing_orders = orders.filter(status='preparing').count()
+    ready_orders = orders.filter(status='ready').count()
+    
+    context = {
+        'orders': orders,
+        'pending_orders': pending_orders,
+        'preparing_orders': preparing_orders,
+        'ready_orders': ready_orders,
+    }
+    return render(request, 'dashboard/manage_orders.html', context)
+
+def add_order(request):
+    """View for adding a new order."""
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.total_amount = 0  # Will be updated when items are added
+            order.save()
+            messages.success(request, 'Order created successfully!')
+            return redirect('edit_order', pk=order.id)
+    else:
+        form = OrderForm()
+    return render(request, 'dashboard/order_form.html', {'form': form, 'action': 'Add'})
+
+def edit_order(request, pk):
+    """View for editing an existing order."""
+    order = get_object_or_404(Order, pk=pk)
+    if request.method == 'POST':
+        form = OrderForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Order updated successfully!')
+            return redirect('manage_orders')
+    else:
+        form = OrderForm(instance=order)
+    
+    # Get order items
+    order_items = order.items.select_related('menu_item').all()
+    
+    return render(request, 'dashboard/order_form.html', {
+        'form': form,
+        'order': order,
+        'order_items': order_items,
+        'action': 'Edit'
+    })
+
+@login_required
+def settings_view(request):
+    """View for managing resort settings."""
+    return render(request, 'dashboard/settings.html', {
+        'title': 'Settings',
+    })
+
+@login_required
+def logout_view(request):
+    """Handle user logout."""
+    logout(request)
+    messages.success(request, 'You have been successfully logged out.')
+    return redirect('login')
+
+@login_required
+def demand_prediction(request):
+    """View for demand prediction dashboard."""
+    analyzer = DemandAnalyzer()
+    
+    # Get parameters from request
+    category = request.GET.get('category', 'room')
+    item_id = request.GET.get('item_id')
+    days = int(request.GET.get('days', 30))
+    
+    # Get basic analysis
+    context = {
+        'historical_analysis': analyzer.analyze_historical_demand(category),
+        'future_predictions': analyzer.predict_future_demand(category, days),
+        'recommendations': analyzer.get_recommendations(category),
+        'selected_category': category,
+        'prediction_days': days,
+    }
+    
+    # Add dynamic pricing if item_id is provided
+    if item_id:
+        context['dynamic_pricing'] = analyzer.get_dynamic_pricing(
+            category, int(item_id), days
+        )
+    
+    return render(request, 'dashboard/demand_prediction.html', context)

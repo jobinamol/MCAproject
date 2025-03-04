@@ -36,4 +36,19 @@ urlpatterns = [
     path('dashboard/venues/<int:pk>/edit/', views.edit_venue, name='edit_venue'),
     path('dashboard/venues/<int:venue_id>/bookings/', views.venue_bookings, name='venue_bookings'),
     path('dashboard/venues/<int:venue_id>/bookings/add/', views.add_booking, name='add_booking'),
+    
+    # Food & Beverage Management URLs
+    path('dashboard/menu/', views.manage_menu, name='manage_menu'),
+    path('dashboard/menu/add/', views.add_menu_item, name='add_menu_item'),
+    path('dashboard/menu/<int:pk>/edit/', views.edit_menu_item, name='edit_menu_item'),
+    path('dashboard/orders/', views.manage_orders, name='manage_orders'),
+    path('dashboard/orders/add/', views.add_order, name='add_order'),
+    path('dashboard/orders/<int:pk>/edit/', views.edit_order, name='edit_order'),
+    
+    # Settings and Authentication URLs
+    path('dashboard/settings/', views.settings_view, name='settings'),
+    path('logout/', views.logout_view, name='logout'),
+    
+    # Demand Prediction URL
+    path('dashboard/demand-prediction/', views.demand_prediction, name='demand_prediction'),
 ]

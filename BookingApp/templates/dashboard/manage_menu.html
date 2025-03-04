@@ -1,0 +1,399 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="menu-management">
+    <!-- Header Section -->
+    <div class="section-header glass-card">
+        <div class="header-content">
+            <div class="title-section">
+                <h1>Menu Management</h1>
+                <p>Manage your food and beverage offerings</p>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'add_menu_item' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Menu Item
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card glass-card">
+            <div class="stat-icon">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Total Items</h3>
+                <h2>{{ total_items }}</h2>
+            </div>
+        </div>
+        <div class="stat-card glass-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Available</h3>
+                <h2>{{ available_items }}</h2>
+            </div>
+        </div>
+        <div class="stat-card glass-card">
+            <div class="stat-icon">
+                <i class="fas fa-leaf"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Vegetarian</h3>
+                <h2>{{ vegetarian_items }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Categories -->
+    <div class="category-filters glass-card">
+        <button class="category-btn active" data-category="all">
+            <i class="fas fa-border-all"></i> All Items
+        </button>
+        {% for category in categories %}
+        <button class="category-btn" data-category="{{ category.id }}">
+            <i class="fas fa-tag"></i> {{ category.name }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <!-- Menu Items Grid -->
+    <div class="menu-grid">
+        {% for item in menu_items %}
+        <div class="menu-card glass-card" data-category="{{ item.category.id }}">
+            <div class="menu-image">
+                {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                {% else %}
+                <div class="placeholder-image">
+                    <i class="fas fa-image"></i>
+                </div>
+                {% endif %}
+                <div class="menu-badges">
+                    {% if item.is_vegetarian %}
+                    <span class="badge veg" title="Vegetarian">
+                        <i class="fas fa-leaf"></i>
+                    </span>
+                    {% endif %}
+                    {% if item.is_vegan %}
+                    <span class="badge vegan" title="Vegan">
+                        <i class="fas fa-seedling"></i>
+                    </span>
+                    {% endif %}
+                    {% if item.is_gluten_free %}
+                    <span class="badge gluten-free" title="Gluten Free">GF</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="menu-content">
+                <div class="menu-header">
+                    <h3>{{ item.name }}</h3>
+                    <span class="price">${{ item.price }}</span>
+                </div>
+                <p class="description">{{ item.description|truncatewords:20 }}</p>
+                <div class="menu-details">
+                    <span class="prep-time">
+                        <i class="fas fa-clock"></i> {{ item.preparation_time }} mins
+                    </span>
+                    <span class="spice-level">
+                        <i class="fas fa-pepper-hot"></i> {{ item.get_spice_level_display }}
+                    </span>
+                </div>
+                <div class="menu-actions">
+                    <a href="{% url 'edit_menu_item' item.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <button class="btn btn-sm btn-outline-{% if item.is_available %}danger{% else %}success{% endif %} toggle-availability" 
+                            data-id="{{ item.id }}">
+                        {% if item.is_available %}
+                        <i class="fas fa-ban"></i> Disable
+                        {% else %}
+                        <i class="fas fa-check"></i> Enable
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-items glass-card">
+            <i class="fas fa-utensils"></i>
+            <p>No menu items added yet</p>
+            <a href="{% url 'add_menu_item' %}" class="btn btn-primary">Add Menu Item</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+/* Modern Dashboard Styles */
+.menu-management {
+    padding: 24px;
+    gap: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.section-header {
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title-section h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #2D3748;
+}
+
+.title-section p {
+    margin: 4px 0 0;
+    color: #718096;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    padding: 24px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(117, 81, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7551FF;
+    font-size: 24px;
+}
+
+/* Menu Grid */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.menu-card {
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.menu-card:hover {
+    transform: translateY(-4px);
+}
+
+.menu-image {
+    position: relative;
+    height: 200px;
+    background: #f7fafc;
+}
+
+.menu-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.menu-badges {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge.veg {
+    background: #48BB78;
+    color: white;
+}
+
+.badge.vegan {
+    background: #38B2AC;
+    color: white;
+}
+
+.badge.gluten-free {
+    background: #D69E2E;
+    color: white;
+}
+
+.menu-content {
+    padding: 20px;
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.menu-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #7551FF;
+}
+
+.menu-details {
+    display: flex;
+    gap: 16px;
+    margin: 12px 0;
+    color: #718096;
+    font-size: 14px;
+}
+
+.menu-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* Category Filters */
+.category-filters {
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    margin-bottom: 24px;
+}
+
+.category-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.category-btn:hover {
+    background: rgba(117, 81, 255, 0.1);
+    color: #7551FF;
+}
+
+.category-btn.active {
+    background: #7551FF;
+    color: white;
+}
+
+/* Glass Card Effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Category filtering
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    const menuCards = document.querySelectorAll('.menu-card');
+
+    categoryButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const category = this.dataset.category;
+            
+            // Update active button
+            categoryButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter menu items with animation
+            menuCards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 10);
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+    });
+
+    // Toggle availability
+    const toggleButtons = document.querySelectorAll('.toggle-availability');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const itemId = this.dataset.id;
+            try {
+                const response = await fetch(`/api/menu-items/${itemId}/toggle/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+});
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %} 

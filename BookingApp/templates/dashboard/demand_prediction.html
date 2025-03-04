@@ -1,0 +1,267 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="demand-prediction">
+    <!-- Header Section -->
+    <div class="section-header glass-card">
+        <div class="header-content">
+            <div class="title-section">
+                <h1>Demand Prediction</h1>
+                <p>AI-powered seasonal demand analysis and predictions</p>
+            </div>
+            <div class="header-actions">
+                <select id="categorySelect" class="form-select">
+                    <option value="room" {% if selected_category == 'room' %}selected{% endif %}>Rooms</option>
+                    <option value="package" {% if selected_category == 'package' %}selected{% endif %}>Packages</option>
+                    <option value="venue" {% if selected_category == 'venue' %}selected{% endif %}>Venues</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demand Overview -->
+    <div class="demand-overview">
+        <div class="stats-grid">
+            <!-- Historical Stats -->
+            <div class="stat-card glass-card">
+                <div class="stat-header">
+                    <i class="fas fa-history"></i>
+                    <h3>Historical Demand</h3>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-item">
+                        <span class="label">Total Bookings</span>
+                        <span class="value">{{ historical_analysis.total_bookings }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Avg Occupancy</span>
+                        <span class="value">{{ historical_analysis.avg_occupancy|floatformat:1 }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prediction Stats -->
+            <div class="stat-card glass-card">
+                <div class="stat-header">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Predicted Demand</h3>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-item">
+                        <span class="label">Next 30 Days</span>
+                        <span class="value">{{ future_predictions.0.predicted_demand }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Confidence</span>
+                        <span class="value">{{ future_predictions.0.confidence_score|floatformat:1 }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demand Chart -->
+        <div class="demand-chart glass-card">
+            <canvas id="demandChart"></canvas>
+        </div>
+
+        <!-- Add this section after the demand chart -->
+        {% if dynamic_pricing %}
+        <div class="pricing-section">
+            <h2>Dynamic Pricing Analysis</h2>
+            <div class="pricing-chart glass-card">
+                <canvas id="pricingChart"></canvas>
+            </div>
+            
+            <div class="pricing-factors glass-card">
+                <h3>Pricing Factors</h3>
+                <div class="factors-grid">
+                    <div class="factor-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>Demand Impact</h4>
+                        <span class="value">{{ dynamic_pricing.0.factors.demand|floatformat:2 }}x</span>
+                    </div>
+                    <div class="factor-card">
+                        <i class="fas fa-sun"></i>
+                        <h4>Seasonal Impact</h4>
+                        <span class="value">{{ dynamic_pricing.0.factors.seasonal|floatformat:2 }}x</span>
+                    </div>
+                    <div class="factor-card">
+                        <i class="fas fa-calendar"></i>
+                        <h4>Day of Week Impact</h4>
+                        <span class="value">{{ dynamic_pricing.0.factors.day_of_week|floatformat:2 }}x</span>
+                    </div>
+                    <div class="factor-card">
+                        <i class="fas fa-hotel"></i>
+                        <h4>Occupancy Impact</h4>
+                        <span class="value">{{ dynamic_pricing.0.factors.occupancy|floatformat:2 }}x</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recommendations -->
+    <div class="recommendations-section">
+        <h2>AI Recommendations</h2>
+        <div class="recommendations-grid">
+            <!-- Pricing Recommendations -->
+            <div class="recommendation-card glass-card">
+                <div class="card-header">
+                    <i class="fas fa-tags"></i>
+                    <h3>Pricing</h3>
+                </div>
+                <div class="card-content">
+                    {% for rec in recommendations.pricing %}
+                    <div class="recommendation-item">
+                        <p>{{ rec.message }}</p>
+                        {% if rec.dates %}
+                        <ul>
+                            {% for date in rec.dates %}
+                            <li>{{ date|date:"M d, Y" }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Similar cards for Capacity and Marketing recommendations -->
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize demand chart
+    const ctx = document.getElementById('demandChart').getContext('2d');
+    const demandChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ future_predictions|map:"date"|safe }},
+            datasets: [{
+                label: 'Predicted Demand',
+                data: {{ future_predictions|map:"predicted_demand"|safe }},
+                borderColor: '#7551FF',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Demand Forecast'
+                }
+            }
+        }
+    });
+
+    // Handle category change
+    document.getElementById('categorySelect').addEventListener('change', function() {
+        window.location.href = `?category=${this.value}`;
+    });
+
+    // Add this to your existing script
+    const pricingCtx = document.getElementById('pricingChart').getContext('2d');
+    const pricingChart = new Chart(pricingCtx, {
+        type: 'line',
+        data: {
+            labels: {{ dynamic_pricing|map:"date"|safe }},
+            datasets: [{
+                label: 'Price Multiplier',
+                data: {{ dynamic_pricing|map:"multiplier"|safe }},
+                borderColor: '#4CAF50',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Dynamic Pricing Forecast'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: 0.8,
+                    max: 2.0
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+/* Add your CSS styles here */
+.demand-prediction {
+    padding: 24px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.demand-chart {
+    padding: 24px;
+    margin-bottom: 24px;
+    height: 400px;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.recommendation-card {
+    padding: 24px;
+}
+
+/* Add more styles as needed */
+.pricing-section {
+    margin-top: 24px;
+}
+
+.pricing-chart {
+    padding: 24px;
+    margin-bottom: 24px;
+    height: 300px;
+}
+
+.factors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.factor-card {
+    text-align: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.factor-card i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: #7551FF;
+}
+
+.factor-card .value {
+    font-size: 20px;
+    font-weight: bold;
+    color: #4CAF50;
+}
+</style>
+{% endblock %} 

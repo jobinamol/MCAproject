@@ -27,28 +27,34 @@
         <div class="menu-section">
             <span class="menu-label">MANAGEMENT</span>
             <ul class="menu-items">
-                <li class="menu-item {% if request.resolver_match.url_name == 'manage_rooms' %}active{% endif %}">
+                <li class="menu-item {% if 'rooms' in request.path %}active{% endif %}">
                     <a href="{% url 'manage_rooms' %}" class="menu-link">
                         <i class="fas fa-bed"></i>
                         <span>Rooms</span>
                     </a>
                 </li>
-                <li class="menu-item {% if request.resolver_match.url_name == 'manage_packages' %}active{% endif %}">
+                <li class="menu-item {% if 'packages' in request.path %}active{% endif %}">
                     <a href="{% url 'manage_packages' %}" class="menu-link">
                         <i class="fas fa-box"></i>
                         <span>Packages</span>
                     </a>
                 </li>
-                <li class="menu-item {% if request.resolver_match.url_name == 'manage_bookings' %}active{% endif %}">
+                <li class="menu-item {% if 'venues' in request.path %}active{% endif %}">
+                    <a href="{% url 'manage_venues' %}" class="menu-link">
+                        <i class="fas fa-building"></i>
+                        <span>Venues</span>
+                    </a>
+                </li>
+                <li class="menu-item {% if 'menu' in request.path %}active{% endif %}">
+                    <a href="{% url 'manage_menu' %}" class="menu-link">
+                        <i class="fas fa-utensils"></i>
+                        <span>Food & Beverage</span>
+                    </a>
+                </li>
+                <li class="menu-item {% if 'bookings' in request.path %}active{% endif %}">
                     <a href="{% url 'manage_bookings' %}" class="menu-link">
                         <i class="fas fa-calendar-check"></i>
                         <span>Bookings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'manage_venues' %}" class="nav-link {% if request.path == '/dashboard/venues/' %}active{% endif %}">
-                        <i class="fas fa-building"></i>
-                        <span>Venues</span>
                     </a>
                 </li>
             </ul>
@@ -58,16 +64,22 @@
         <div class="menu-section">
             <span class="menu-label">ANALYTICS</span>
             <ul class="menu-items">
-                <li class="menu-item {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                <li class="menu-item {% if 'analytics' in request.path %}active{% endif %}">
                     <a href="{% url 'analytics' %}" class="menu-link">
                         <i class="fas fa-chart-line"></i>
                         <span>Analytics</span>
                     </a>
                 </li>
-                <li class="menu-item {% if request.resolver_match.url_name == 'reviews' %}active{% endif %}">
+                <li class="menu-item {% if 'reviews' in request.path %}active{% endif %}">
                     <a href="{% url 'reviews' %}" class="menu-link">
                         <i class="fas fa-star"></i>
                         <span>Reviews</span>
+                    </a>
+                </li>
+                <li class="menu-item {% if 'demand-prediction' in request.path %}active{% endif %}">
+                    <a href="{% url 'demand_prediction' %}" class="menu-link">
+                        <i class="fas fa-brain"></i>
+                        <span>Demand Prediction</span>
                     </a>
                 </li>
             </ul>
@@ -76,11 +88,11 @@
 
     <!-- Bottom Actions -->
     <div class="sidebar-footer">
-        <a href="#" class="menu-link">
+        <a href="{% url 'settings' %}" class="menu-link">
             <i class="fas fa-gear"></i>
             <span>Settings</span>
         </a>
-        <a href="#" class="menu-link">
+        <a href="{% url 'logout' %}" class="menu-link">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
         </a>
