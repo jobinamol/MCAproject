@@ -1,0 +1,170 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div class="form-wrapper">
+    <div class="form-card glass-card">
+        <h2>{{ action }} Package</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Package Form -->
+            <div class="package-section">
+                <h3>Package Details</h3>
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="error-feedback">
+                        {{ field.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Activities Formset -->
+            <div class="activities-section">
+                <h3>Package Activities</h3>
+                {{ activity_formset.management_form }}
+                <div id="activities-container">
+                    {% for activity_form in activity_formset %}
+                    <div class="activity-form">
+                        {% for field in activity_form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <div class="error-feedback">
+                                {{ field.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% if not forloop.first %}
+                        <button type="button" class="btn btn-sm btn-danger remove-activity">Remove</button>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-outline-primary" id="add-activity">
+                    <i class="fas fa-plus"></i> Add Activity
+                </button>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Package</button>
+                <a href="{% url 'manage_packages' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-wrapper {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-card {
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--dark-text);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--dark-text);
+}
+
+.error-feedback {
+    color: var(--dark-danger);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.activities-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--dark-border);
+}
+
+.activity-form {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.remove-activity {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+#add-activity {
+    margin: 1rem 0;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.querySelector('#activities-container');
+    const addButton = document.querySelector('#add-activity');
+    const totalForms = document.querySelector('#id_activities-TOTAL_FORMS');
+
+    addButton.addEventListener('click', function() {
+        const formCount = container.children.length;
+        const newForm = container.children[0].cloneNode(true);
+        
+        // Update form index
+        newForm.innerHTML = newForm.innerHTML.replace(/-0-/g, `-${formCount}-`);
+        
+        // Clear inputs
+        newForm.querySelectorAll('input, textarea').forEach(input => {
+            input.value = '';
+        });
+        
+        // Add remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-sm btn-danger remove-activity';
+        removeBtn.textContent = 'Remove';
+        newForm.appendChild(removeBtn);
+        
+        container.appendChild(newForm);
+        totalForms.value = formCount + 1;
+    });
+
+    // Handle remove buttons
+    container.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-activity')) {
+            e.target.parentElement.remove();
+            totalForms.value = container.children.length;
+        }
+    });
+});
+</script>
+{% endblock %} 

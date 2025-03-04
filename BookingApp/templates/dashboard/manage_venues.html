@@ -1,0 +1,76 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="venue-management">
+    <!-- Header -->
+    <div class="section-header glass-card">
+        <div class="header-content">
+            <h1>Venue Management</h1>
+            <p>Manage your celebration halls and event venues</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'add_venue' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Venue
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card glass-card">
+            <div class="stat-icon">
+                <i class="fas fa-building"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Total Venues</h3>
+                <h2>{{ total_venues }}</h2>
+            </div>
+        </div>
+        <!-- Similar cards for Available, Maintenance, Reserved -->
+    </div>
+
+    <!-- Venues List -->
+    <div class="venues-grid">
+        {% for venue in venues %}
+        <div class="venue-card glass-card">
+            <div class="venue-image">
+                {% if venue.image %}
+                <img src="{{ venue.image.url }}" alt="{{ venue.name }}">
+                {% else %}
+                <div class="placeholder-image">
+                    <i class="fas fa-image"></i>
+                </div>
+                {% endif %}
+            </div>
+            <div class="venue-content">
+                <h3>{{ venue.name }}</h3>
+                <p class="description">{{ venue.description|truncatewords:20 }}</p>
+                <div class="venue-details">
+                    <span><i class="fas fa-users"></i> {{ venue.capacity }} guests</span>
+                    <span><i class="fas fa-dollar-sign"></i> ${{ venue.price_per_hour }}/hr</span>
+                </div>
+                <div class="venue-actions">
+                    <a href="{% url 'edit_venue' venue.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'venue_bookings' venue.id %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-calendar"></i> Bookings
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-venues glass-card">
+            <i class="fas fa-building"></i>
+            <p>No venues added yet</p>
+            <a href="{% url 'add_venue' %}" class="btn btn-primary">Add Venue</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+/* Add your CSS styles here */
+</style>
+{% endblock %} 

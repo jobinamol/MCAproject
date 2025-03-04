@@ -1,0 +1,126 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div class="bookings-wrapper">
+    <div class="section-header glass-card">
+        <div class="header-content">
+            <h1>Room {{ room.number }} Bookings</h1>
+            <p>{{ room.category.name }} - Floor {{ room.floor }}</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'add_booking' room.id %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Booking
+            </a>
+        </div>
+    </div>
+
+    <div class="bookings-list">
+        {% for booking in bookings %}
+        <div class="booking-card glass-card">
+            <div class="booking-status {{ booking.booking_status }}">
+                {{ booking.get_booking_status_display }}
+            </div>
+            <div class="booking-content">
+                <div class="guest-info">
+                    <h3>{{ booking.guest_name }}</h3>
+                    <p>{{ booking.guest_email }}</p>
+                    <p>{{ booking.guest_phone }}</p>
+                </div>
+                <div class="booking-details">
+                    <div class="detail-item">
+                        <span class="label">Check In</span>
+                        <span class="value">{{ booking.check_in }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Check Out</span>
+                        <span class="value">{{ booking.check_out }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Guests</span>
+                        <span class="value">{{ booking.adults }} Adults, {{ booking.children }} Children</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Total Price</span>
+                        <span class="value">${{ booking.total_price }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-bookings glass-card">
+            <i class="fas fa-calendar-times"></i>
+            <p>No bookings found for this room</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.bookings-wrapper {
+    padding: 1.5rem;
+}
+
+.bookings-list {
+    margin-top: 1.5rem;
+    display: grid;
+    gap: 1.5rem;
+}
+
+.booking-card {
+    position: relative;
+    padding: 1.5rem;
+}
+
+.booking-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+}
+
+.booking-content {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.guest-info h3 {
+    margin: 0 0 0.5rem 0;
+}
+
+.guest-info p {
+    margin: 0;
+    color: var(--dark-text-secondary);
+    font-size: 0.875rem;
+}
+
+.booking-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.detail-item .label {
+    font-size: 0.875rem;
+    color: var(--dark-text-secondary);
+}
+
+.no-bookings {
+    text-align: center;
+    padding: 3rem;
+    color: var(--dark-text-secondary);
+}
+
+.no-bookings i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %} 

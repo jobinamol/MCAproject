@@ -19,4 +19,12 @@ def make_initials(name):
         # Return first two initials if available, otherwise just first initial
         return initials[:2]
     except (AttributeError, IndexError):
-        return '##' 
+        return '##'
+
+@register.filter
+def subtract(value, arg):
+    """Subtract the arg from the value."""
+    try:
+        return int(value) - int(arg)
+    except (ValueError, TypeError):
+        return 0 

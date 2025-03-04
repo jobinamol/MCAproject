@@ -1,0 +1,227 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="package-management">
+    <!-- Header -->
+    <div class="section-header glass-card">
+        <div class="header-content">
+            <h1>Package Management</h1>
+            <p>Manage your resort packages and special offers</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'add_package' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Package
+            </a>
+        </div>
+    </div>
+
+    <!-- Package Grid -->
+    <div class="package-grid">
+        {% for package in packages %}
+        <div class="package-card glass-card">
+            <div class="package-image">
+                {% if package.image %}
+                    <img src="{{ package.image.url }}" alt="{{ package.name }}">
+                {% else %}
+                    <img src="{% static 'images/default-package.jpg' %}" alt="Default Package Image">
+                {% endif %}
+                <div class="package-status {{ package.status }}">
+                    {{ package.get_status_display }}
+                </div>
+            </div>
+            <div class="package-content">
+                <h3>{{ package.name }}</h3>
+                <p class="description">{{ package.description }}</p>
+                <div class="package-meta">
+                    <span class="price">${{ package.price }}</span>
+                    <span class="duration">{{ package.duration }}</span>
+                </div>
+                <div class="package-actions">
+                    <a href="{% url 'edit_package' package.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'delete_package' package.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+            <div class="package-availability">
+                <div class="availability-status">
+                    {% if package.is_available_today %}
+                        <span class="badge bg-success">Available Today</span>
+                        {% if package.available_slots %}
+                            <span class="slots-left">{{ package.available_slots }} slots left</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-danger">Not Available</span>
+                    {% endif %}
+                </div>
+                
+                {% if package.activities.exists %}
+                <div class="activities-list">
+                    <h5>Activities</h5>
+                    <ul>
+                        {% for activity in package.activities.all %}
+                        <li>
+                            <span class="activity-name">{{ activity.name }}</span>
+                            <span class="activity-duration">{{ activity.duration }} mins</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if package.start_date and package.end_date %}
+                <div class="date-range">
+                    <span>Available from {{ package.start_date|date:"M d, Y" }}</span>
+                    <span>to {{ package.end_date|date:"M d, Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-packages glass-card">
+            <i class="fas fa-box-open"></i>
+            <h3>No Packages Yet</h3>
+            <p>Start by adding your first package</p>
+            <a href="{% url 'add_package' %}" class="btn btn-primary">Add Package</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+/* Package Management Styles */
+.package-management {
+    padding: 1.5rem;
+}
+
+.section-header {
+    padding: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.package-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.package-card {
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.package-card:hover {
+    transform: translateY(-5px);
+}
+
+.package-image {
+    position: relative;
+    height: 200px;
+}
+
+.package-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.package-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+}
+
+.package-status.active {
+    background: rgba(0, 208, 148, 0.2);
+    color: #00D094;
+}
+
+.package-content {
+    padding: 1.5rem;
+}
+
+.package-meta {
+    display: flex;
+    justify-content: space-between;
+    margin: 1rem 0;
+}
+
+.package-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.no-packages {
+    grid-column: 1 / -1;
+    padding: 3rem;
+    text-align: center;
+}
+
+.no-packages i {
+    font-size: 3rem;
+    color: var(--dark-text-secondary);
+    margin-bottom: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+/* Add these styles */
+.package-availability {
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.availability-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.slots-left {
+    font-size: 0.875rem;
+    color: var(--dark-text-secondary);
+}
+
+.activities-list {
+    margin-top: 1rem;
+}
+
+.activities-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.activities-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.date-range {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: var(--dark-text-secondary);
+    display: flex;
+    flex-direction: column;
+}
+</style>
+{% endblock %} 

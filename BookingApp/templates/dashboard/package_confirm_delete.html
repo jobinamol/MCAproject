@@ -1,0 +1,38 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div class="delete-confirmation glass-card">
+    <i class="fas fa-exclamation-triangle"></i>
+    <h2>Delete Package</h2>
+    <p>Are you sure you want to delete "{{ package.name }}"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="confirmation-actions">
+            <button type="submit" class="btn btn-danger">Delete</button>
+            <a href="{% url 'manage_packages' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.delete-confirmation {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+.delete-confirmation i {
+    font-size: 3rem;
+    color: var(--dark-danger);
+    margin-bottom: 1rem;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+</style>
+{% endblock %} 

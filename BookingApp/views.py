@@ -1,10 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from .utils import recommend_resorts
 from datetime import datetime, timedelta
 from django.utils import timezone
 import json
 import random  # For demo data, replace with actual data in production
+from django.contrib import messages
+from .models import Package, Activity, PackageActivity, PackageBooking, Room, RoomCategory, RoomBooking, Venue, VenueBooking
+from .forms import PackageForm, ActivityForm, PackageActivityForm, ActivityFormSet, RoomForm, RoomCategoryForm, RoomBookingForm, VenueForm, VenueBookingForm
 
 def home(request):
     """Render the home page."""
@@ -23,24 +26,103 @@ def recommend_view(request):
 
 def dashboard(request):
     """Render the main dashboard."""
-    return render(request, 'dashboard/resort_index.html')
+    # Get package statistics
+    active_packages = Package.objects.filter(status='active').count()
+    inactive_packages = Package.objects.filter(status='inactive').count()
+    seasonal_packages = Package.objects.filter(status='seasonal').count()
+    total_packages = Package.objects.count()
+    recent_packages = Package.objects.order_by('-created_at')[:5]
+
+    # Get room statistics
+    rooms = Room.objects.all()
+    total_rooms = rooms.count()
+    available_rooms = rooms.filter(status='available').count()
+    occupied_rooms = rooms.filter(status='occupied').count()
+    maintenance_rooms = rooms.filter(status='maintenance').count()
+    
+    # Get recent bookings
+    recent_bookings = RoomBooking.objects.select_related('room').order_by('-created_at')[:5]
+
+    context = {
+        'active_packages_count': active_packages,
+        'inactive_packages_count': inactive_packages,
+        'seasonal_packages_count': seasonal_packages,
+        'total_packages': total_packages,
+        'recent_packages': recent_packages,
+        'total_rooms': total_rooms,
+        'available_rooms': available_rooms,
+        'occupied_rooms': occupied_rooms,
+        'maintenance_rooms': maintenance_rooms,
+        'recent_bookings': recent_bookings,
+    }
+    return render(request, 'dashboard/resort_index.html', context)
 
 def manage_packages(request):
-    """Handle package management."""
-    if request.method == 'POST':
-        # Handle package creation/update
-        return JsonResponse({'status': 'success'})
+    packages = Package.objects.all().order_by('-created_at')
+    today = timezone.now().date()
     
-    packages = [
-        {
-            'id': 1,
-            'name': 'Royal Villa Experience',
-            'price': 5999,
-            'description': 'Luxury villa with private pool',
-            'is_active': True
-        }
-    ]
-    return render(request, 'dashboard/packages.html', {'packages': packages})
+    # Add availability information
+    for package in packages:
+        package.is_available_today = package.is_available(today)
+        package.available_slots = (
+            package.daily_limit - PackageBooking.objects.filter(
+                package=package,
+                booking_date=today
+            ).count()
+        ) if package.daily_limit > 0 else None
+    
+    return render(request, 'dashboard/manage_packages.html', {'packages': packages})
+
+def add_package(request):
+    if request.method == 'POST':
+        form = PackageForm(request.POST, request.FILES)
+        activity_formset = ActivityFormSet(request.POST, prefix='activities')
+        
+        if form.is_valid() and activity_formset.is_valid():
+            package = form.save()
+            activity_formset.instance = package
+            activity_formset.save()
+            
+            messages.success(request, 'Package added successfully!')
+            return redirect('manage_packages')
+    else:
+        form = PackageForm()
+        activity_formset = ActivityFormSet(prefix='activities')
+    
+    return render(request, 'dashboard/package_form.html', {
+        'form': form,
+        'activity_formset': activity_formset,
+        'action': 'Add'
+    })
+
+def edit_package(request, pk):
+    package = get_object_or_404(Package, pk=pk)
+    if request.method == 'POST':
+        form = PackageForm(request.POST, request.FILES, instance=package)
+        activity_formset = ActivityFormSet(request.POST, instance=package, prefix='activities')
+        
+        if form.is_valid() and activity_formset.is_valid():
+            form.save()
+            activity_formset.save()
+            messages.success(request, 'Package updated successfully!')
+            return redirect('manage_packages')
+    else:
+        form = PackageForm(instance=package)
+        activity_formset = ActivityFormSet(instance=package, prefix='activities')
+    
+    return render(request, 'dashboard/package_form.html', {
+        'form': form,
+        'activity_formset': activity_formset,
+        'action': 'Edit'
+    })
+
+def delete_package(request, pk):
+    package = get_object_or_404(Package, pk=pk)
+    if request.method == 'POST':
+        package.delete()
+        messages.success(request, 'Package deleted successfully!')
+        return redirect('manage_packages')
+    return render(request, 'dashboard/package_confirm_delete.html', {'package': package})
 
 def manage_bookings(request):
     """Handle booking management."""
@@ -269,51 +351,189 @@ def resort_home(request):
     return render(request, 'dashboard/resort_home.html')
 
 def manage_rooms(request):
-    """Handle room management."""
-    rooms = [
-        {
-            'name': 'Luxury Suite 101',
-            'type': 'Luxury Suite',
-            'capacity': 4,
-            'size': 75,
-            'price': 599,
-            'status': 'Available',
-            'status_class': 'success',
-            'image': 'https://placehold.co/600x400',  # Placeholder image
-            'trend_class': 'positive',
-            'price_trend': '+8.5'
-        },
-        {
-            'name': 'Ocean View 202',
-            'type': 'Deluxe Room',
-            'capacity': 2,
-            'size': 45,
-            'price': 399,
-            'status': 'Occupied',
-            'status_class': 'warning',
-            'image': 'https://placehold.co/600x400',  # Placeholder image
-            'trend_class': 'positive',
-            'price_trend': '+5.2'
-        },
-        {
-            'name': 'Garden Suite 303',
-            'type': 'Standard Room',
-            'capacity': 3,
-            'size': 55,
-            'price': 299,
-            'status': 'Available',
-            'status_class': 'success',
-            'image': 'https://placehold.co/600x400',  # Placeholder image
-            'trend_class': 'neutral',
-            'price_trend': '0.0'
+    """View for managing rooms."""
+    try:
+        rooms = Room.objects.all().select_related('category')
+        categories = RoomCategory.objects.all()
+        
+        context = {
+            'rooms': rooms,
+            'categories': categories,
+            'total_rooms': rooms.count(),
+            'available_rooms': rooms.filter(status='available').count(),
+            'occupied_rooms': rooms.filter(status='occupied').count(),
+            'maintenance_rooms': rooms.filter(status='maintenance').count(),
         }
-    ]
+        return render(request, 'dashboard/manage_rooms.html', context)
+    except Exception as e:
+        messages.error(request, f'Error loading rooms: {str(e)}')
+        return redirect('dashboard')
+
+def add_room(request):
+    """View for adding a new room."""
+    if request.method == 'POST':
+        form = RoomForm(request.POST)
+        if form.is_valid():
+            room = form.save(commit=False)
+            room.current_price = room.calculate_price()
+            room.save()
+            messages.success(request, 'Room added successfully!')
+            return redirect('manage_rooms')
+    else:
+        form = RoomForm()
+    return render(request, 'dashboard/room_form.html', {'form': form, 'action': 'Add'})
+
+def edit_room(request, pk):
+    """View for editing an existing room."""
+    room = get_object_or_404(Room, pk=pk)
+    if request.method == 'POST':
+        form = RoomForm(request.POST, instance=room)
+        if form.is_valid():
+            room = form.save(commit=False)
+            room.current_price = room.calculate_price()
+            room.save()
+            messages.success(request, 'Room updated successfully!')
+            return redirect('manage_rooms')
+    else:
+        form = RoomForm(instance=room)
+    return render(request, 'dashboard/room_form.html', {'form': form, 'action': 'Edit'})
+
+def room_bookings(request, room_id):
+    """View for managing room bookings."""
+    room = get_object_or_404(Room, id=room_id)
+    bookings = RoomBooking.objects.filter(room=room).order_by('-check_in')
+    return render(request, 'dashboard/room_bookings.html', {
+        'room': room,
+        'bookings': bookings
+    })
+
+def add_booking(request, room_id):
+    """View for adding a new booking."""
+    room = get_object_or_404(Room, id=room_id)
+    if request.method == 'POST':
+        form = RoomBookingForm(request.POST)
+        if form.is_valid():
+            booking = form.save(commit=False)
+            booking.room = room
+            booking.total_price = room.current_price * (
+                (booking.check_out - booking.check_in).days
+            )
+            booking.save()
+            
+            # Update room status
+            room.status = 'reserved'
+            room.save()
+            
+            messages.success(request, 'Booking added successfully!')
+            return redirect('room_bookings', room_id=room.id)
+    else:
+        form = RoomBookingForm()
     
+    return render(request, 'dashboard/booking_form.html', {
+        'form': form,
+        'room': room,
+        'action': 'Add'
+    })
+
+def check_availability(request):
+    if request.method == 'POST':
+        package_id = request.POST.get('package_id')
+        date = request.POST.get('date')
+        
+        package = get_object_or_404(Package, pk=package_id)
+        check_date = timezone.datetime.strptime(date, '%Y-%m-%d').date()
+        
+        is_available = package.is_available(check_date)
+        available_sessions = []
+        
+        if is_available:
+            # Get available sessions for the date
+            package_activities = PackageActivity.objects.filter(package=package)
+            for pa in package_activities:
+                booked_sessions = PackageBooking.objects.filter(
+                    package=package,
+                    booking_date=check_date
+                ).values_list('session_time', flat=True)
+                
+                available_sessions.extend([
+                    time for time in pa.session_times
+                    if time not in booked_sessions
+                ])
+        
+        return JsonResponse({
+            'available': is_available,
+            'sessions': available_sessions
+        })
+
+def manage_venues(request):
+    """View for managing venues."""
+    venues = Venue.objects.all()
+    total_venues = venues.count()
+    available_venues = venues.filter(status='available').count()
+    maintenance_venues = venues.filter(status='maintenance').count()
+    reserved_venues = venues.filter(status='reserved').count()
+
     context = {
-        'rooms': rooms,
-        'total_rooms': len(rooms),
-        'available_rooms': sum(1 for room in rooms if room['status'] == 'Available'),
-        'occupied_rooms': sum(1 for room in rooms if room['status'] == 'Occupied')
+        'venues': venues,
+        'total_venues': total_venues,
+        'available_venues': available_venues,
+        'maintenance_venues': maintenance_venues,
+        'reserved_venues': reserved_venues,
     }
+    return render(request, 'dashboard/manage_venues.html', context)
+
+def add_venue(request):
+    """View for adding a new venue."""
+    if request.method == 'POST':
+        form = VenueForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Venue added successfully!')
+            return redirect('manage_venues')
+    else:
+        form = VenueForm()
+    return render(request, 'dashboard/venue_form.html', {'form': form, 'action': 'Add'})
+
+def edit_venue(request, pk):
+    """View for editing an existing venue."""
+    venue = get_object_or_404(Venue, pk=pk)
+    if request.method == 'POST':
+        form = VenueForm(request.POST, request.FILES, instance=venue)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Venue updated successfully!')
+            return redirect('manage_venues')
+    else:
+        form = VenueForm(instance=venue)
+    return render(request, 'dashboard/venue_form.html', {'form': form, 'action': 'Edit'})
+
+def venue_bookings(request, venue_id):
+    """View for managing venue bookings."""
+    venue = get_object_or_404(Venue, id=venue_id)
+    bookings = VenueBooking.objects.filter(venue=venue).order_by('-event_date')
+    return render(request, 'dashboard/venue_bookings.html', {
+        'venue': venue,
+        'bookings': bookings
+    })
+
+def add_booking(request, venue_id):
+    """View for adding a new venue booking."""
+    venue = get_object_or_404(Venue, id=venue_id)
+    if request.method == 'POST':
+        form = VenueBookingForm(request.POST)
+        if form.is_valid():
+            booking = form.save(commit=False)
+            booking.venue = venue
+            booking.total_price = booking.calculate_price()
+            booking.save()
+            
+            messages.success(request, 'Booking added successfully!')
+            return redirect('venue_bookings', venue_id=venue.id)
+    else:
+        form = VenueBookingForm()
     
-    return render(request, 'dashboard/manage_rooms.html', context)
+    return render(request, 'dashboard/booking_form.html', {
+        'form': form,
+        'venue': venue,
+        'action': 'Add'
+    })

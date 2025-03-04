@@ -32,6 +32,40 @@
                 </div>
             </div>
         </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card glass-card">
+                <div class="stat-header">
+                    <div class="stat-icon package">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <span class="trend up">Active</span>
+                </div>
+                <div class="stat-content">
+                    <h3>Active Packages</h3>
+                    <h2>{{ active_packages_count }}</h2>
+                </div>
+                <div class="stat-chart">
+                    <canvas id="packagesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card glass-card">
+                <div class="stat-header">
+                    <div class="stat-icon rooms">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <span class="trend">Rooms</span>
+                </div>
+                <div class="stat-content">
+                    <h3>Available Rooms</h3>
+                    <h2>{{ available_rooms }}/{{ total_rooms }}</h2>
+                </div>
+                <div class="stat-chart">
+                    <canvas id="roomsChart"></canvas>
+                </div>
+            </div>
+        </div>
         <!-- Similar cards for Occupancy, Rating -->
     </div>
 
@@ -91,10 +125,10 @@
                 </div>
                 <div class="card-body">
                     <div class="action-grid">
-                        <button class="action-btn">
+                        <a href="{% url 'manage_packages' %}" class="action-btn">
                             <i class="fas fa-box-open"></i>
                             <span>Packages</span>
-                        </button>
+                        </a>
                         <button class="action-btn">
                             <i class="fas fa-concierge-bell"></i>
                             <span>Services</span>
@@ -108,6 +142,43 @@
                             <span>Settings</span>
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this after the Room Management section -->
+    <div class="col-xl-4">
+        <div class="content-card glass-card">
+            <div class="card-header">
+                <h3>Package Overview</h3>
+                <a href="{% url 'manage_packages' %}" class="btn btn-sm btn-outline-primary">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="package-list">
+                    {% for package in recent_packages %}
+                    <div class="package-item">
+                        <div class="package-info">
+                            <h4>{{ package.name }}</h4>
+                            <span class="package-meta">
+                                <span class="price">${{ package.price }}</span>
+                                <span class="duration">{{ package.duration }}</span>
+                            </span>
+                        </div>
+                        <div class="package-status {{ package.status }}">
+                            {{ package.get_status_display }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-data">
+                        <p>No packages available</p>
+                        <a href="{% url 'add_package' %}" class="btn btn-sm btn-primary">
+                            Add Package
+                        </a>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -221,5 +292,144 @@
         flex-direction: column;
     }
 }
+
+/* Add these styles to your existing CSS */
+.package-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.package-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.package-item:hover {
+    transform: translateX(5px);
+}
+
+.package-info h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.package-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--dark-text-secondary);
+}
+
+.package-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.package-status.active {
+    background: rgba(0, 208, 148, 0.2);
+    color: #00D094;
+}
+
+.package-status.inactive {
+    background: rgba(255, 71, 71, 0.2);
+    color: #FF4747;
+}
+
+.package-status.seasonal {
+    background: rgba(255, 181, 71, 0.2);
+    color: #FFB547;
+}
+
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: var(--dark-text-secondary);
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ... existing chart configurations ...
+
+    // Package Statistics Chart
+    const packageChartConfig = {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Inactive', 'Seasonal'],
+            datasets: [{
+                data: [
+                    {{ active_packages_count|default:0 }},
+                    {{ inactive_packages_count|default:0 }},
+                    {{ seasonal_packages_count|default:0 }}
+                ],
+                backgroundColor: [
+                    'rgba(0, 208, 148, 0.2)',
+                    'rgba(255, 71, 71, 0.2)',
+                    'rgba(255, 181, 71, 0.2)'
+                ],
+                borderColor: [
+                    '#00D094',
+                    '#FF4747',
+                    '#FFB547'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '80%',
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    };
+
+    new Chart(document.getElementById('packagesChart'), packageChartConfig);
+
+    // Room Statistics Chart
+    const roomsChartConfig = {
+        type: 'doughnut',
+        data: {
+            labels: ['Available', 'Occupied', 'Maintenance'],
+            datasets: [{
+                data: [
+                    {{ available_rooms }},
+                    {{ occupied_rooms }},
+                    {{ maintenance_rooms }}
+                ],
+                backgroundColor: [
+                    'rgba(0, 208, 148, 0.2)',
+                    'rgba(255, 71, 71, 0.2)',
+                    'rgba(255, 181, 71, 0.2)'
+                ],
+                borderColor: [
+                    '#00D094',
+                    '#FF4747',
+                    '#FFB547'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '80%',
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    };
+
+    new Chart(document.getElementById('roomsChart'), roomsChartConfig);
+});
+</script>
 {% endblock %} 

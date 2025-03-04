@@ -1,0 +1,35 @@
+[
+    {
+        "model": "BookingApp.activity",
+        "pk": 1,
+        "fields": {
+            "name": "Spa Treatment",
+            "description": "Relaxing spa treatment with professional masseuse",
+            "duration": 60,
+            "max_participants": 2
+        }
+    },
+    {
+        "model": "BookingApp.activity",
+        "pk": 2,
+        "fields": {
+            "name": "Guided Tour",
+            "description": "Explore local attractions with expert guide",
+            "duration": 180,
+            "max_participants": 10
+        }
+    },
+    {
+        "model": "BookingApp.package",
+        "pk": 1,
+        "fields": {
+            "name": "Weekend Getaway",
+            "description": "Perfect weekend retreat package",
+            "price": "299.99",
+            "duration": "2 days",
+            "status": "active",
+            "daily_limit": 5,
+            "total_limit": 20
+        }
+    }
+] 

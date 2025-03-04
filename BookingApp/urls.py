@@ -10,6 +10,9 @@ urlpatterns = [
     # Dashboard routes
     path('dashboard/', views.dashboard, name='dashboard'),
     path('dashboard/packages/', views.manage_packages, name='manage_packages'),
+    path('dashboard/packages/add/', views.add_package, name='add_package'),
+    path('dashboard/packages/<int:pk>/edit/', views.edit_package, name='edit_package'),
+    path('dashboard/packages/<int:pk>/delete/', views.delete_package, name='delete_package'),
     path('dashboard/bookings/', views.manage_bookings, name='manage_bookings'),
     path('dashboard/rooms/', views.manage_rooms, name='manage_rooms'),
     path('dashboard/analytics/', views.analytics, name='analytics'),
@@ -20,4 +23,17 @@ urlpatterns = [
     path('api/update-pricing/', views.update_pricing, name='update_pricing'),
     path('api/analytics-data/', views.get_analytics_data, name='analytics_data'),
     
+    # Room Management URLs
+    path('dashboard/rooms/', views.manage_rooms, name='manage_rooms'),
+    path('dashboard/rooms/add/', views.add_room, name='add_room'),
+    path('dashboard/rooms/<int:pk>/edit/', views.edit_room, name='edit_room'),
+    path('dashboard/rooms/<int:room_id>/bookings/', views.room_bookings, name='room_bookings'),
+    path('dashboard/rooms/<int:room_id>/bookings/add/', views.add_booking, name='add_booking'),
+    
+    # Venue Management URLs
+    path('dashboard/venues/', views.manage_venues, name='manage_venues'),
+    path('dashboard/venues/add/', views.add_venue, name='add_venue'),
+    path('dashboard/venues/<int:pk>/edit/', views.edit_venue, name='edit_venue'),
+    path('dashboard/venues/<int:venue_id>/bookings/', views.venue_bookings, name='venue_bookings'),
+    path('dashboard/venues/<int:venue_id>/bookings/add/', views.add_booking, name='add_booking'),
 ]

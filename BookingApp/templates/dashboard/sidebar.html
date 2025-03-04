@@ -45,6 +45,12 @@
                         <span>Bookings</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{% url 'manage_venues' %}" class="nav-link {% if request.path == '/dashboard/venues/' %}active{% endif %}">
+                        <i class="fas fa-building"></i>
+                        <span>Venues</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
